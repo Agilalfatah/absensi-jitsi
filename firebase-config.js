@@ -1,7 +1,7 @@
 // firebase-config.js
 
 const firebaseConfig = {
-  apiKey: "API_KEY_KAMU",
+  apiKey: "AIzaSyCNJp26_wvTHIK7e1g78A2ndEGVrWp_v5Y",
   authDomain: "absensi-jitsi.firebaseapp.com",
   databaseURL: "https://absensi-jitsi-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "absensi-jitsi",

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Absensi</title>
+  <script src="firebase-config.js"></script>
+</head>
+
+<body>
+<h2>Admin - Data Absensi</h2>
+
+<table border="1">
+  <thead>
+    <tr>
+      <th>Nama</th>
+      <th>Waktu</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="data"></tbody>
+</table>
+
+<script>
+const tbody = document.getElementById("data");
+
+firebase.database().ref("absensi").on("value", snapshot => {
+  tbody.innerHTML = "";
+  snapshot.forEach(child => {
+    const d = child.val();
+    tbody.innerHTML += `
+      <tr>
+        <td>${d.nama}</td>
+        <td>${d.waktu}</td>
+        <td>${d.status}</td>
+      </tr>
+    `;
+  });
+});
+</script>
+</body>
+</html>

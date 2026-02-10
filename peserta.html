@@ -10,14 +10,32 @@
   <!-- Face API -->
   <script src="face-api.min.js"></script>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-
-  <!-- Config -->
+  <!-- Firebase Config -->
   <script src="firebase-config.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+    }
+
+    #video {
+      border: 2px solid black;
+      margin-top: 10px;
+    }
+
+    /* ✅ Jitsi diperbesar */
+    #jitsi {
+      width: 95%;
+      height: 700px;
+      margin: 20px auto;
+      border: 2px solid #ccc;
+    }
+  </style>
 </head>
 
 <body>
@@ -27,59 +45,66 @@
 <video id="video" width="320" height="240" autoplay muted></video>
 <p id="status">Menunggu wajah...</p>
 
+<!-- Jitsi Meeting -->
 <div id="jitsi"></div>
 
 <script>
-const nama = prompt("Masukkan nama Anda:");
-if (!nama) {
-  alert("Nama wajib diisi");
-  location.reload();
-}
+  const nama = prompt("Masukkan nama Anda:");
+  if (!nama) {
+    alert("Nama wajib diisi");
+    location.reload();
+  }
 
-const video = document.getElementById("video");
-const statusText = document.getElementById("status");
+  const video = document.getElementById("video");
+  const statusText = document.getElementById("status");
 
-// Load model
-Promise.all([
-  faceapi.nets.tinyFaceDetector.loadFromUri('./models')
-]).then(startVideo);
+  // Load model FaceAPI
+  Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri("./models")
+  ]).then(startVideo);
 
-function startVideo() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => video.srcObject = stream)
-    .catch(err => alert("Kamera tidak bisa diakses"));
-}
+  function startVideo() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(() => alert("Kamera tidak bisa diakses"));
+  }
 
-let sudahKirim = false;
+  let sudahKirim = false;
 
-video.addEventListener("play", () => {
-  setInterval(async () => {
-    const deteksi = await faceapi.detectSingleFace(
-      video,
-      new faceapi.TinyFaceDetectorOptions()
-    );
+  // Face detection loop
+  video.addEventListener("play", () => {
+    setInterval(async () => {
 
-    if (deteksi && !sudahKirim) {
-      sudahKirim = true;
-      statusText.innerText = "Wajah terdeteksi ✅";
+      const deteksi = await faceapi.detectSingleFace(
+        video,
+        new faceapi.TinyFaceDetectorOptions()
+      );
 
-      const data = {
-        nama: nama,
-        waktu: new Date().toLocaleString(),
-        status: "Hadir"
-      };
+      if (deteksi && !sudahKirim) {
+        sudahKirim = true;
+        statusText.innerText = "Wajah terdeteksi ✅ Absensi dikirim";
 
-      database.ref("absensi/" + nama).set(data);
-    }
-  }, 2000);
-});
+        const data = {
+          nama: nama,
+          waktu: new Date().toLocaleString(),
+          status: "Hadir"
+        };
 
-// Jitsi
-new JitsiMeetExternalAPI("meet.jit.si", {
-  roomName: "AbsensiJitsi2026",
-  parentNode: document.getElementById("jitsi"),
-  userInfo: { displayName: nama }
-});
+        // ✅ Kirim ke Firebase pakai push (aman)
+        database.ref("absensi").push(data);
+      }
+
+    }, 2000);
+  });
+
+  // ✅ Jitsi Meeting Besar
+  new JitsiMeetExternalAPI("meet.jit.si", {
+    roomName: "AbsensiJitsi2026",
+    parentNode: document.getElementById("jitsi"),
+    width: "100%",
+    height: 700,
+    userInfo: { displayName: nama }
+  });
 </script>
 
 </body>
